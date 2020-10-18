@@ -1,0 +1,64 @@
+version: '3.7'
+services:
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus:/prometheus-config
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/prometheus-config/prometheus.yml'
+    ports:
+      - 9090:9090
+    networks:
+      - back-tier
+    depends_on:
+      - grafana
+      - demo1
+      - demo2
+
+  alertmanager:
+    image: prom/alertmanager
+    volumes:
+      - ./alertmanager:/alertmanager-config
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/alertmanager-config/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    ports:
+      - 9093:9093
+    networks:
+      - back-tier
+    depends_on:
+      - prometheus
+
+  grafana:
+    image: grafana/grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - 3000:3000
+    networks:
+      - back-tier
+
+  demo1:
+    image: demo:0.0.1-SNAPSHOT
+    ports:
+      - 8081:8080
+    networks:
+      - back-tier
+
+  demo2:
+    image: demo:0.0.1-SNAPSHOT
+    ports:
+      - 8082:8080
+    networks:
+      - back-tier
+
+networks:
+  back-tier:
+
+volumes:
+  prometheus_data: {}
+  alertmanager_data: {}
+  grafana_data: {}
